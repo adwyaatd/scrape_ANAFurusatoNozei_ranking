@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  scrape_ANA_FurusatoNozei
+
+  Sample SAM Template for scrape_ANA_FurusatoNozei
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    Tracing: Active
+  Api:
+    TracingEnabled: True
+
+Resources:
+  ScrapeANAFurusatoNozeiFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: "scrape_ANA_FurusatoNozei"
+      CodeUri: ./scrape_ANA_FurusatoNozei
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref CommonLayer
+      Events:
+        scrape_ANA_FurusatoNozei:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /base
+            Method: get
+      MemorySize: 512
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: CommonLayer Description
+      ContentUri: ./layers/
+      CompatibleRuntimes:
+        - python3.7
+      LayerName: scrape_ANA_FurusatoNozei_common-layer
+    Metadata:
+      BuildMethod: python3.7
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  ScrapeANAFurusatoNozeiApi:
+    Description: "API Gateway endpoint URL for Prod stage for scrape_ANA_FurusatoNozei function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/base/"
+  ScrapeANAFurusatoNozeiFunction:
+    Description: "scrape_ANA_FurusatoNozei Lambda Function ARN"
+    Value: !GetAtt ScrapeANAFurusatoNozeiFunction.Arn
+  ScrapeANAFurusatoNozeiFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt ScrapeANAFurusatoNozeiFunctionRole.Arn
