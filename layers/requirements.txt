@@ -1,3 +1,7 @@
 requests
 selenium == 3.141.0
 pytz
+gspread
+gspread_formatting
+oauth2client
+python-dotenv

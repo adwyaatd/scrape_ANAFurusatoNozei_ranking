@@ -17,5 +17,5 @@ codeuri = "/Users/s17979/code/pri_dev/scrape_ANA_FurusatoNozei/layers"
 build_method = "python3.7"
 compatible_runtimes = ["python3.7"]
 architecture = "x86_64"
-manifest_hash = ""
+manifest_hash = "6397cdc477df1c46db0e89938a14a686"
 layer = "CommonLayer"

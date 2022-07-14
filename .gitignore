@@ -248,3 +248,4 @@ __pycache__
 chromedriver
 headless-chromium
 deps/
+old/
