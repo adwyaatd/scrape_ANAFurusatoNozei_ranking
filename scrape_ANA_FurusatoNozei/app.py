@@ -1,17 +1,10 @@
 from calendar import weekday
-import imp
 import json
-# from operator import neg
 import sys
-import os
-# from tkinter.tix import Tree
-# from tkinter import W
 import traceback
 import re
-# from turtle import end_fill
 import uuid
 import datetime
-import os
 from wsgiref.util import shift_path_info
 
 from selenium import webdriver
@@ -24,9 +17,6 @@ import pytz
 import gspread
 from gspread_formatting import *
 from oauth2client.service_account import ServiceAccountCredentials
-from dotenv import load_dotenv
-load_dotenv()
-
 
 def get_driver():
     try:
@@ -125,18 +115,18 @@ def scrape_ranking():
         items_count = len(items)
         n = 1
         while n <= items_count:
-            print(f'ランキング: {n}位')
+            # print(f'ランキング: {n}位')
             if is_findable_element(driver,'id',f'ranking_weekly_{n}'):
                 ranking = n
                 gift_area = driver.find_element_by_xpath(f"//*[@id=\"ranking_weekly_{n}\"]/a/section/h3/span[1]") # 北海道紋別市
                 gift_area = gift_area.text
-                print(gift_area)
+                # print(gift_area)
                 gift_name = driver.find_element_by_xpath(f"//*[@id=\"ranking_weekly_{n}\"]/a/section/h3/span[2]") #10-68 オホーツク産ホタテ玉冷大(1kg)
                 gift_name = gift_name.text
-                print(gift_name)
+                # print(gift_name)
                 gift_price = driver.find_element_by_xpath(f"//*[@id=\"ranking_weekly_{n}\"]/a/section/span[2]") # 10,000
                 gift_price = gift_price.text
-                print(gift_price)
+                # print(gift_price)
 
                 gift_dict = {'ranking':ranking, 'gift_area':gift_area, 'gift_name':gift_name, 'gift_price' :gift_price}
                 gift_list.append(gift_dict)
@@ -249,11 +239,11 @@ def write_spreadsheet(scraped_gift_list):
             index = get_inclusive_index(existing_gitf_name_list, scraped_gift['gift_name'])
             existing_gift_price = int(existing_gitf_price_list[index].translate(transrate_table))
             existing_gift_area = existing_gitf_area_list[index].replace(' ','')
-            print(f'index: {index}')
-            print(f'scraped_gift_area: {scraped_gift_area}')
-            print(f'existing_gift_area: {existing_gift_area}')
-            print(f'scraped_gift_price: {scraped_gift_price}')
-            print(f'existing_gift_price: {existing_gift_price}')
+            # print(f'index: {index}')
+            # print(f'scraped_gift_area: {scraped_gift_area}')
+            # print(f'existing_gift_area: {existing_gift_area}')
+            # print(f'scraped_gift_price: {scraped_gift_price}')
+            # print(f'existing_gift_price: {existing_gift_price}')
 
             if scraped_gift_area == existing_gift_area and scraped_gift_price == existing_gift_price:
                 print('全一致 返礼品あり')
