@@ -6,6 +6,7 @@ import re
 import uuid
 import datetime
 from wsgiref.util import shift_path_info
+import requests
 
 from selenium import webdriver
 from selenium.webdriver.chrome import options
@@ -103,14 +104,14 @@ def scrape_shop_info(driver):
     return shop_dict
 
 
-def scrape_ranking():
+def scrape_ranking(url):
     gift_list = []
     try:
         print("start scraping ranking")
         driver = get_driver()
         driver.implicitly_wait(3)
 
-        driver.get("https://furusato.ana.co.jp/products/ranking.php")
+        driver.get(url)
         items = driver.find_elements_by_xpath("//*[@id=\"ranking_weekly\"]/ul/li")
         items_count = len(items)
         n = 1
@@ -180,8 +181,7 @@ def get_parameters_from_SSM(parameter_name_list):
 
 
 
-def write_spreadsheet(scraped_gift_list):
-    sheet_name = "元総合"
+def write_spreadsheet(scraped_gift_list, sheet_name):
     sheet = get_Gspreed_sheet(sheet_name)
 
     print('設定開始')
@@ -349,25 +349,26 @@ def get_weekday(date):
 
 def main(event):
     body = event["body"]
-    should_scrape = body["should_scrape"]
+    should_scrape = body.get("should_scrape", False)
+    demo_gift_list = body.get("demo_gift_list", None)
     is_success = False
     is_written = False
-    params_gift_list = body["demo_gift_list"]
+    url = event.get('ana_total_ranking', event.get('ana_meat_ranking')).get('url')
+    gsp_sheet_name = event.get('ana_total_ranking', event.get('ana_meat_ranking')).get('gsp_sheet_name')
 
-    scraped_gift_list = (scrape_ranking()) if should_scrape else params_gift_list
+    scraped_gift_list = (scrape_ranking(url)) if should_scrape else demo_gift_list
 
     print("-------------------------")
     print(f"scraped_gift_list: {scraped_gift_list}")
     print("-------------------------")
 
     if scraped_gift_list:
-        is_written = write_spreadsheet(scraped_gift_list)
+        is_written = write_spreadsheet(scraped_gift_list, gsp_sheet_name)
     else:
         print("no scraped_gift_list")
         is_success = False 
 
-    if is_written:
-        is_success = True
+    is_success = True if is_written else False
 
     return is_success
 
