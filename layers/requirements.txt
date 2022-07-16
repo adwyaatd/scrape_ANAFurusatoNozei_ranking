@@ -4,4 +4,3 @@ pytz
 gspread
 gspread_formatting
 oauth2client
-python-dotenv

@@ -6,7 +6,6 @@ import re
 import uuid
 import datetime
 from wsgiref.util import shift_path_info
-import requests
 
 from selenium import webdriver
 from selenium.webdriver.chrome import options
@@ -18,6 +17,7 @@ import pytz
 import gspread
 from gspread_formatting import *
 from oauth2client.service_account import ServiceAccountCredentials
+import requests
 
 def get_driver():
     try:
@@ -181,8 +181,8 @@ def get_parameters_from_SSM(parameter_name_list):
 
 
 
-def write_spreadsheet(scraped_gift_list, sheet_name):
-    sheet = get_Gspreed_sheet(sheet_name)
+def write_spreadsheet(scraped_gift_list, sheet_name, gsp_key_list):
+    sheet = get_Gspreed_sheet(sheet_name, gsp_key_list)
 
     print('設定開始')
     last_row_num = get_last_row_num(sheet)
@@ -280,26 +280,15 @@ def write_spreadsheet(scraped_gift_list, sheet_name):
     print("スプレッドシートへの書き込み完了")
     return True
 
-def get_Gspreed_sheet(sheet_name):
+def get_Gspreed_sheet(sheet_name, gsp_key_list):
     print('認証開始')
 
-    gsp_key_name_list = [
-        'gsp_ANA_FURUSATONOZEI_client_id',
-        'gsp_ANA_FURUSATONOZEI_project_id',
-        'gsp_ANA_FURUSATONOZEI_client_email',
-        'gsp_ANA_FURUSATONOZEI_client_x509_cert_url',
-        'gsp_ANA_FURUSATONOZEI_private_key',
-        'gsp_ANA_FURUSATONOZEI_private_key_id'
-    ]
-
-    gsp_keys_dict = get_parameters_from_SSM(gsp_key_name_list) 
-
-    project_id           = gsp_keys_dict['gsp_ANA_FURUSATONOZEI_project_id']
-    private_key_id       = gsp_keys_dict['gsp_ANA_FURUSATONOZEI_private_key_id']
-    private_key          = gsp_keys_dict['gsp_ANA_FURUSATONOZEI_private_key'].replace('\\n','\n')
-    client_email         = gsp_keys_dict['gsp_ANA_FURUSATONOZEI_client_email']
-    client_id            = gsp_keys_dict['gsp_ANA_FURUSATONOZEI_client_id']
-    client_x509_cert_url = gsp_keys_dict['gsp_ANA_FURUSATONOZEI_client_x509_cert_url']
+    project_id           = gsp_key_list['project_id']
+    private_key_id       = gsp_key_list['private_key_id']
+    private_key          = gsp_key_list['private_key'].replace('\\n','\n')
+    client_email         = gsp_key_list['client_email']
+    client_id            = gsp_key_list['client_id']
+    client_x509_cert_url = gsp_key_list['client_x509_cert_url']
     
     key_dict = {
         "type": "service_account",
@@ -347,6 +336,14 @@ def get_weekday(date):
     return weekday
 
 
+def send_line_notification(gsp_sheet_name, is_success, access_token):
+    url = "https://notify-api.line.me/api/notify"
+    headers = {'Authorization': 'Bearer ' + access_token}
+    message = f'Succes: {gsp_sheet_name}' if is_success else f'Failure: {gsp_sheet_name}'
+    payload = {'message': message}
+    r = requests.post(url, headers=headers, params=payload,)
+
+
 def main(event):
     body = event["body"]
     should_scrape = body.get("should_scrape", False)
@@ -356,6 +353,28 @@ def main(event):
     url = event.get('ana_total_ranking', event.get('ana_meat_ranking')).get('url')
     gsp_sheet_name = event.get('ana_total_ranking', event.get('ana_meat_ranking')).get('gsp_sheet_name')
 
+    gsp_key_name_list = [
+        'gsp_ANA_FURUSATONOZEI_client_id',
+        'gsp_ANA_FURUSATONOZEI_project_id',
+        'gsp_ANA_FURUSATONOZEI_client_email',
+        'gsp_ANA_FURUSATONOZEI_client_x509_cert_url',
+        'gsp_ANA_FURUSATONOZEI_private_key',
+        'gsp_ANA_FURUSATONOZEI_private_key_id',
+        'LINE_API_access_token',
+    ]
+
+    parameters = get_parameters_from_SSM(gsp_key_name_list) 
+
+    project_id           = parameters['gsp_ANA_FURUSATONOZEI_project_id']
+    private_key_id       = parameters['gsp_ANA_FURUSATONOZEI_private_key_id']
+    private_key          = parameters['gsp_ANA_FURUSATONOZEI_private_key'].replace('\\n','\n')
+    client_email         = parameters['gsp_ANA_FURUSATONOZEI_client_email']
+    client_id            = parameters['gsp_ANA_FURUSATONOZEI_client_id']
+    client_x509_cert_url = parameters['gsp_ANA_FURUSATONOZEI_client_x509_cert_url']
+    access_token         = parameters['LINE_API_access_token']
+
+    gsp_key_list = {'project_id':project_id, 'private_key_id':private_key_id ,'private_key':private_key ,'client_email':client_email ,'client_id':client_id ,'client_x509_cert_url':client_x509_cert_url}
+
     scraped_gift_list = (scrape_ranking(url)) if should_scrape else demo_gift_list
 
     print("-------------------------")
@@ -363,12 +382,14 @@ def main(event):
     print("-------------------------")
 
     if scraped_gift_list:
-        is_written = write_spreadsheet(scraped_gift_list, gsp_sheet_name)
+        is_written = write_spreadsheet(scraped_gift_list, gsp_sheet_name, gsp_key_list)
     else:
         print("no scraped_gift_list")
         is_success = False 
 
     is_success = True if is_written else False
+
+    send_line_notification(gsp_sheet_name, is_success, access_token)
 
     return is_success
 
