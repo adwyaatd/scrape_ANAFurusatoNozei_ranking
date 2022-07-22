@@ -107,9 +107,9 @@ def scrape_shop_info(driver):
 def scrape_ranking(url):
     gift_list = []
     try:
-        print("start scraping ranking")
         driver = get_driver()
         driver.implicitly_wait(3)
+        print("start scraping ranking")
 
         driver.get(url)
         items = driver.find_elements_by_xpath("//*[@id=\"ranking_weekly\"]/ul/li")
@@ -235,7 +235,7 @@ def write_spreadsheet(scraped_gift_list, sheet_name, gsp_key_list):
         scraped_gift_price = int(scraped_gift['gift_price'].translate(transrate_table))
         scraped_gift_area = scraped_gift['gift_area'].replace(' ','')
         if scraped_gift['gift_name'] in existing_gitf_name_list:
-            print('返礼品名あり')
+            # print('返礼品名あり')
             index = get_inclusive_index(existing_gitf_name_list, scraped_gift['gift_name'])
             existing_gift_price = int(existing_gitf_price_list[index].translate(transrate_table))
             existing_gift_area = existing_gitf_area_list[index].replace(' ','')
@@ -246,14 +246,14 @@ def write_spreadsheet(scraped_gift_list, sheet_name, gsp_key_list):
             # print(f'existing_gift_price: {existing_gift_price}')
 
             if scraped_gift_area == existing_gift_area and scraped_gift_price == existing_gift_price:
-                print('全一致 返礼品あり')
+                # print('全一致 返礼品あり')
                 is_matched = True
                 row_num = index+1
                 sheet.update_cell(row_num,new_col_num,scraped_gift["ranking"])
                 continue
 
         if not is_matched:
-            print("合致なし。新規返礼品として登録")
+            # print("合致なし。新規返礼品として登録")
             add_list = [new_gift_No,scraped_gift_area,scraped_gift['gift_name'],scraped_gift_price]
             all_add_list.append(add_list)
             ranking_list.append([scraped_gift["ranking"]])
@@ -426,6 +426,6 @@ def lambda_handler(event, context):
         return {
             "statusCode": 400,
             "body": json.dumps({
-                "message": e,
+                "message": 'error',
             })
         }

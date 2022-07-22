@@ -1,0 +1,24 @@
+version = 0.1
+[y]
+[y.deploy]
+[y.deploy.parameters]
+stack_name = "ScrapeANAFurusatoNozei"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-6db3wek38lyc"
+s3_prefix = "ScrapeANAFurusatoNozei"
+region = "ap-northeast-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+image_repositories = []
+
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "scrape-ana"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-6db3wek38lyc"
+s3_prefix = "scrape-ana"
+region = "ap-northeast-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+image_repositories = []
