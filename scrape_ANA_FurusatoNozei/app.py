@@ -234,7 +234,7 @@ def write_spreadsheet(scraped_gift_list, sheet_name, gsp_key_list):
         transrate_table = str.maketrans('','',',円')
         scraped_gift_price = int(scraped_gift['gift_price'].translate(transrate_table))
         scraped_gift_area = scraped_gift['gift_area'].replace(' ','')
-        if scraped_gift['gift_name'] in existing_gitf_name_list:
+        if scraped_gift['gift_name'] == existing_gitf_name_list:
             # print('返礼品名あり')
             index = get_inclusive_index(existing_gitf_name_list, scraped_gift['gift_name'])
             existing_gift_price = int(existing_gitf_price_list[index].translate(transrate_table))
@@ -311,7 +311,7 @@ def get_Gspreed_sheet(sheet_name, gsp_key_list):
     session = gspread.authorize(credentials)
 
     #スプレッドシートIDを変数に格納する。
-    key = '1Ww3kvLvsE9fEtcHIKfPl5hsTycvKEc2uRjM_oNxWtbI'
+    key = '1dOpDkDIa1CrrIPazjx6FiHUhZ1vxhu7gGWH5OV9hbo0'
     # スプレッドシート（ブック）を開く
     sheets = session.open_by_key(key)
 
